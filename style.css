@@ -1,0 +1,127 @@
+
+@charset "utf-8";
+
+html{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  -webkit-scroll-behavior: smooth;
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
+  background-color:rgba(255,255,255,1);
+}
+details[open] {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  border: 1px solid #271d1f;
+  background-color:rgba(255,255,255,1);
+}
+details:not(.opner) details[open]{
+  width: 95%;
+  margin: auto;
+}
+details.opner[open] {
+  border: 0px;
+  background-color:transparent;
+}
+details.opner > summary{
+  list-style: none;
+}
+details.opner > summary > *::before{
+  content: "⊕";
+  display: inline-block;
+}
+details.opner > summary > *.headline::before{
+  transform:skewX(+30deg);
+}
+details.opner[open] > summary > *::before{
+  content: "⊖";
+  opacity: 0.2;
+}
+#wrapper{
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+  margin: 0px auto;
+  background-blend-mode:lighten;
+  background-image:linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), url('5_1242x2208_JP.jpg');
+}
+#conteiner{
+  width:90%;
+  margin-right:auto;
+  margin-left:auto;
+}
+#footer{
+  width: 100%;
+  text-align: center;
+  background-color: rgba(64,64,128,0.5);
+  color: white;
+}
+#footer a,#footer a:link, #footer a:visited, #footer a:hover,#footer  a:active, #footer a:focus {
+  color: white;
+}
+#footer a{
+  color: white;
+}
+.template{
+  display: none;
+}
+.nodisp{
+  display: none;
+}
+.flex{
+  display: flex;
+}
+.flex .item{
+  flex: 1;
+}
+.rightmsg{
+  float: right;
+}
+
+.logoarea{
+  padding-top: 15px;
+  padding-bottom: 15px;
+  text-align: center;
+}
+
+.centerdiv{
+  text-align: center;
+}
+h2{
+  margin-top: 8px;
+  margin-bottom: 0px;
+}
+.headline {
+  position: relative;
+  padding: 5px 26px 5px 42px;
+  background: #3027b1;
+  padding-bottom: 2px;
+  margin-left:20px;
+  margin-right:40px;
+  margin-bottom:10px;
+  margin-top:15px;
+
+  font-size: 1.8em;
+  color: #f0faff;
+  box-shadow:  10px  5px 0px #85a3b3;
+  transform:skewX(-30deg);
+}
+
+*[data-view="false"]{
+  display: none !important;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

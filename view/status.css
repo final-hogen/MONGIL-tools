@@ -1,0 +1,398 @@
+
+@charset "utf-8";
+
+:root {
+  --check-color: #7bbfe984;
+  --border-color: #80808038;
+  --selecter-border: dashed 2px #47495aad;
+  --added-border: dashed 2px #47495a3e;
+  --dialog-border: solid 1px #3849e0ad;
+  --input-border: solid 1px lightgray;;
+  --panel-color-o: #7dc2fa94;
+}
+#status_template,#parameter_template,#skill_buf_template{
+  display: none;
+}
+body.meiryo{
+  font-family: "Meiryo", "メイリオ", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+.攻撃力::before {
+  content: url(icon/攻撃力.webp) " 攻撃力 ";
+}
+.攻撃力::after {
+  content:  "%";
+}
+.faceimage{
+  width: 150px;
+  height: 150px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  border-radius: 15px;
+  background-image: radial-gradient(#00000000, var(--panel-color-o));
+}
+.faceimage div{
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-image: url(face/にゃんこ.webp);
+  border-radius: 15px;
+}
+.radar{
+  width: 150px;
+  height: 150px;
+  transform: translate(0, -8px);
+}
+select {
+  padding: 0px;
+  font-size: 16px;
+}
+summary::-webkit-details-marker {
+  display: none; /* Chrome, Safari, Edgeなどで三角を消す */
+}
+textarea.comment {
+  display:block;
+  width: 90%;
+  font-size: 16px;
+  font-family: "Meiryo", "メイリオ", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  border-color: lightgray;
+  field-sizing: content;
+  min-height: 24px; /* 最低の高さを指定 */
+  max-height: 200px; /* 最大高さを超えるとスクロールバーを表示 */
+}
+.graphics{
+  display: flex;
+}
+.buttonarea{
+  width: 90%;
+  display: flex;
+  margin-left: 10px;
+}
+.buttonarea *:last-child{
+  margin-left: auto;
+}
+
+/* 評価・キャラクター */
+
+.character_data div{
+  margin: 4px 0px;
+}
+.character_data input{
+  display: inline-block;
+  width: 200px;
+}
+.character_data .selecter{
+  display: inline-block;
+  width: 250px;
+}
+.character_data .tag{
+  display: inline-block;
+  width: 80px;
+}
+.character_data input[type="radio"]{
+  display: none;
+}
+.character_data label{
+  width: 100%;
+  display: inline-block;
+}
+.character_data input[type="radio"] + *{
+  border: var(--selecter-border);
+}
+.character_data input[type="radio"]:checked + *{
+  background-color: var(--check-color)
+}
+.character_data input[type="radio"]:not(:checked) + *{
+  opacity: 0.3;
+}
+.character_data .selecter > span{
+  display: inline-block;
+  text-align: center;
+}
+.character_data .selecter.才能開花 > span{
+  width: 25px;
+}
+.character_data .selecter.属性 > span{
+  width: 40px;
+}
+.character_data .selecter.攻撃距離 > span{
+  width: 100px;
+}
+
+/* ダイアログ */
+dialog {
+  border: var(--dialog-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: #eff2fff1;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease, overlay 0.3s ease allow-discrete, display 0.3s ease allow-discrete;
+}
+dialog[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0);
+  transition: background-color 0.3s ease;
+}
+dialog[open]::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ステータス部分の入力ボックス */
+.status_parameter_area{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.input-status {
+  display: inline-flex;
+  align-items: center;
+  border: var(--input-border);
+  border-radius: 4px;
+  margin: 0px 4px;
+  background-color: white;
+}
+.input-status > *[name="icon"],.character_data *[name="icon"]{
+  width: 20px;
+  height: 20px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-image: url(icon/攻撃力.webp);
+  display: inline-block;
+}
+.input-status > *[name="name"]{
+  width:120px;
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.input-status > *[name="value"] {
+  width: 45px;
+  border: none;
+  outline: none;
+  padding: 0;
+  font-size: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.input-status > *[name="suffix"] {
+  color: #666;
+  margin-left: 4px;
+  user-select: none; 
+}
+
+
+/* パラメータ選択 */
+.input-parameter {
+  display: inline-flex;
+  align-items: center;
+  border: var(--input-border);
+  border-radius: 4px;
+  margin: 0px 4px;
+  background-color: white;
+  width: 90%;
+}
+.input-parameter > *[name="name"]:open {
+  font-size: 16px;
+}
+.input-parameter > *[name="value"] {
+  width: 45px;
+  border: none;
+  outline: none;
+  padding: 0;
+  font-size: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.input-parameter > *[name="suffix"] {
+  color: #666;
+  margin-left: 4px;
+  user-select: none; 
+}
+.input-parameter *[name="限定"]{
+  width: 65px;
+}
+.input-parameter *[name="限定"]:has(option[value="スイッチ"]:checked) {
+  font-size: 12px;
+}
+.input-parameter *[name="限定"]:has(option[value="サポート"]:checked) {
+  font-size: 12px;
+}
+
+.input-parameter  select{
+  border: 0px;
+}
+.input-parameter .parameter-name {
+  padding-left: 18px; /* 画像用の余白 */
+  width: calc(120px + 16px + 18px);
+  background-repeat: no-repeat;
+  background-size: 20px 20px;
+  height: 19px;
+}
+.input-parameter  .attribute_box{
+  margin-left: auto; 
+}
+
+
+/* 装備・モンプラン・スキル部分 */
+#monring_view,#equip_view,#skill_view > div{
+  input[list]{
+    width: 50%;
+    border: var(--input-border);
+  }
+  > div{
+    border: var(--added-border);
+    border-radius: 15px;
+  }
+  > div.buttonarea{
+    border:0px;
+  }
+  > div > input{
+    font-size: 20px;
+  }
+}
+#防具_view{
+    label:has(input[name="バースト"]){
+    display: none;
+  }
+}
+#equip_view,#skill_view{
+    label:has(input[name="リンク"]){
+    display: none;
+  }
+}
+#skill_view input[name="skillname"]{
+  font-size: 20px;
+}
+/* 結果表示 */
+.score span:first-child{
+  writing-mode: vertical-rl;
+}
+.score span:last-child{
+  font-family:'Arial Black';
+  font-size: 64px;
+  background: linear-gradient(135deg, #6bff9a, #48dbfb);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px #111d2e89;
+  min-width: 50%;
+  display: inline-block;
+  text-align: right;
+}
+details.数値詳細[open]{
+  border: 0px;
+  background-color: transparent;
+}
+.resultitems{
+  width: 90%;
+  table{
+    display: inline-flex;
+    margin: 5px 10px;
+    border: var(--input-border);
+    border-radius: 10px;
+    text-align: center;
+    background-color: white;
+  }
+  > table tr td{
+    border-top: var(--input-border);
+    min-width: 80px;
+  }
+  > table tr td:not([class="number"])::before{
+    content: "+";
+  }
+  > table tr td:not([class="number"])::after{
+    content: "%";
+  }
+  > div{
+    width: 100%; /* 強制改行 */
+    height: 1px;
+    background-color: #80808038;
+    margin: 10px 0px;
+  }
+}
+/* パーティー表示 */
+body.patyview{
+  input{
+    border: none;
+    background: transparent;
+    color: inherit;
+    outline: none;
+    padding: 0;
+    pointer-events: none;
+  }
+  hr{
+    width: 90%;
+  }
+  textarea:not(.active){
+    border: none;
+    background: transparent;
+    color: inherit;
+    outline: none;
+    padding: 0;
+    pointer-events: none;
+  }
+  details[open]:not(.active){
+    background-color: transparent;
+  }
+  .paty_status  .才能開花{
+    margin-right: 3px;
+  }
+  .paty_status  .才能開花 > div{
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-bottom: auto;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url(img/才能開花.webp);
+  }
+  .paty_status  .属性{
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-bottom: auto;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .character_data input.nodisp{
+    display: none;
+  }
+  #duplicate_parameter{
+    width: 90%;
+  }
+  #duplicate_parameter > div{
+    display: inline-flex;
+    margin: 5px 10px;
+    padding: 3px;
+    border: var(--input-border);
+    border-radius: 10px;
+    text-align: center;
+    background-color: white;
+  }
+  label:has(#burst_mode){
+    font-weight: bold;
+  }
+}

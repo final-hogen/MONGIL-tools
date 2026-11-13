@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta name="viewport" content="width=700">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>モンギル キャラクターステータス</title>
+    <link rel="shortcut icon" type="image/png" href="サイトアイコン.PNG">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="status.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
+    <script src="../dpath_json.js"></script>
+    <script src="../compress.js"></script>
+    <script src="../dataloader.js"></script>
+    <script src="ui.js"></script>
+    <script src="status.ui.js"></script>
+    <script src="math.js"></script>
+    <script src="status.js"></script>
+  </head>
+  <body class="meiryo"><form id="myForm">
+    <div id="wrapper" >
+    <div id="conteiner">
+<!-- 追加のスタイル -->
+<div id="parameter_style_template" class="template">
+select:has(option[value="@value"]:checked){
+  background-image: url("@icon");
+  font-size: @size;
+}
+</div>
+<style id="add_style"></style>
+<dialog id="message_dialog">
+  メッセージはありません
+</dialog>
+      <div class="logoarea">
+        <div >
+          <img style="margin-right: 10px;" src="logo.png"/>
+            <span style="display: inline-block;">攻撃<br/>評価</span>
+        </div>
+      </div>
+      <p>
+        キャラクターの詳細データを記録し、大雑把な評価スコアを算出するページです。スコアはキャラ単体のものです。<br/>
+        計算は憶測で、何の保証もありません。このサイトにあるデータ、画像などの著作権はnetmerble(モンギル)にあります。
+      </p>
+      <details>
+        <summary>説明</summary>
+        <p>
+          このサイトを使って入力したデータをほかの人と共有できます。<br/>
+          入力したデータは主にURLで保存・共有できます。いくつか方法があります。<br/>
+        <ol>
+          <li>記入後、URLをコピペ・ブックマークする。(もっとも簡単で確実だがURLがクソ長く、xとかには貼れない。)</li>
+          <li>記入後、短縮URLを発行(<a href="javascript:window.scrollTo (0,document.documentElement.scrollHeight);">最下部</a>)し、コピペする。(ドメインはx.gdになります)</li>
+          <li>記入後、全データをコピーしてデータをテキストファイルなどで保存する。(管理が面倒)</li>
+        </ol>
+          データを変更するとURLも変更されます。他の人のデータを変更してもURLが変わるだけで、上書きしてしまう心配はありません。<br/>
+        </p>
+      </details>
+      <br/>
+<!-- 評価 -->
+      <details class="opner" open>
+        <summary><h1 class="headline">評価内容</h1></summary>
+        <div id="character_view">
+          <details>
+            <summary>説明</summary>
+            <div>
+              <p>
+              キャラクターの名前や属性、凸状況を記入してください。<br/>
+              キャラクターの状態から色々な評価項目を作成して数値化しています。バースト時以外のバフは発動しているものとして計算します。<br/>
+              基本的に同じキャラクターで他の人と比較してどこが違うか可視化するためのものです。絶対的な指標ではありません。<br/>
+              </p>
+              <details>
+                <summary>評価項目について</summary>
+                <p>
+                  スコアはざっくりダメージ計算に近くした値です。ダメージそのものではありません。明らかに大きければダメージが大きくなってる程度に考えてください。<br/>
+                  バフデバフは発動条件を満たしている前提で計算します。結果変に上振れていることがあります。ありえないような条件の場合は数値に0を入れておいてください。<br/>
+                  攻撃対象はボス・弱点属性を想定しています。<br/>
+                  通常攻撃・SPスキル・ULT・サポート・スイッチのダメージアップは(通常攻撃×4+SPスキル×2+ULT×1+サポート×1+スイッチ×1)/9の加重平均で評価されます。<br/>
+                  パラメータの限定が一般モンスター・一回の場合、発生していないものとして計算に入らなくなります。<br/>
+                </p>
+              </details>
+              <details>
+                <summary>ダメージ計算式について</summary>
+                <p>
+                  2026年6月ごろredditで議論されていた計算式がベースになっています。主に以下のような感じ。<br/><br/>
+                  基礎攻撃力 = 攻撃力 × (100%+攻撃力増加%)<br/>
+                  防御減衰 = 攻撃力 / (攻撃力 + 敵防御力 × (100%-防御力低下%-貫通率%) )<br/>
+                  属性補正 = (100% + 属性ダメージ増加%) × (100% - 敵属性耐性%+ 属性耐性低下%)<br/>
+                  (※属性ダメージには攻撃時の各属性数値を使用する)<br/>
+                  ダメージ軽減 = 100% - 敵の被ダメージ軽減%<br/>
+                  条件付きダメージ = ボスモンスターダメージ増加 × 弱点属性ダメージ × 通常攻撃ダメージ × ・・・・など(100%ベース)<br/>
+                  <br/>
+                  最終ダメージ = 基礎攻撃力×防御減衰 ×クリティカルダメージ×属性補正×ダメージ軽減 ×条件付きダメージ×総合ダメージ増加×スキル倍率<br/>
+                  <br/>
+                  ※被ダメージ軽減は重複加算で100%を超えると被ダメージが0(表記無し)になる。<br/>
+                  ※敵防御力にはステージ補正、プレイヤーキャラのレベル補正などあるもよう。<br/>
+                  ※乱戦ダメージ増加は表記上上がっているようだが、実際はほぼ効果ないので計算から除外。<br/>
+                  ※弱点属性ダメージの上限は200%と言われているが今回は無視。<br/>
+                  <details>
+                    <summary>バフデバフについて</summary>
+                    <p>
+                      発生源が異なるバフは基本的に重複する。ただし戦闘中にバフ表記が出るもの(モンぷらんのリンク効果や弱体効果など)は、同じ名前と同じ値で重複しない。<br/>
+                      炎耐性低下15%と炎弱体化効果15%は似てますが別の名前なので重複します。<br/>
+                      同じモンプランのレアリティ違い効果は重複しないようゲームでは調整されましたがこのツールでは対応できていません。ご容赦ください。<br/>
+                    </p>
+                  </details>
+                  <details>
+                    <summary>参考URL</summary>
+                    <p>
+                      <a href="https://www.reddit.com/r/MongilStarDive/comments/1t0eqj0/mongil_star_dive_damage_calculator/?tl=ja">モンギルダメージ計算器</a><br/>
+                      <a href="https://arca.live/b/mongillstardive/171272146">属性ダメージ増加と属性抵抗研究(とその他)</a><br/>
+                      <a href="https://stardive.7dso.xyz/dungeon?lang=ja">モンスター情報</a><br/>
+                    </p>
+                  </details>
+                </p>
+              </details>
+              <details>
+                <summary>ツールの特殊処理</summary>
+                <p>
+                  限定で通常など適用すると特殊な加重が適用されます。制限が一般・一回の場合は意味無い物として0になります。<br/>
+                  ※次の倍率で計算されます　通常×4/9、SP×2/9、ULT×1/9、サポート×1/9、スイッチ×1/9、ボス×9/9、弱点×9/9、一般×0/9、一回×0/9<br/>
+                  2026/11現在：乱戦ダメージは表示と異なりほぼ効果がないため、計算から除外しています。<br/>
+                  バースト効果はパーティ画面でのみ確認できます。<br/>
+                </p>
+              </details><br/>
+            </div>
+          </details>
+          </label>
+
+          <div id="result_area">
+            <div class="graphics">
+              <div class="faceimage"><div id="faceimage"></div></div>
+              <div><canvas id="Radar" class="radar"></canvas></div>
+
+              <div class="character_data">
+                <div>
+                  <span class="tag">名前：</span>
+                    <input dpath="character.name" width="200px" list="character_list" name="character" id="character_name">
+                    <datalist id="character_list"></datalist>
+                </div>
+                <div>
+                  <span class="tag">才能開花：</span>
+                  <span class="selecter 才能開花">
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花0" value="0" checked /><span><label for="才能開花0">0</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花1" value="1"/><span><label for="才能開花1">1</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花2" value="2"/><span><label for="才能開花2">2</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花3" value="3"/><span><label for="才能開花3">3</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花4" value="4"/><span><label for="才能開花4">4</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花5" value="5"/><span><label for="才能開花5">5</label></span>
+                    <input dpath="character.才能開花" type="radio" name="才能開花" id="才能開花6" value="6"/><span><label for="才能開花6">6</label></span>
+                  </span>
+                </div>
+                <div>
+                 <span class="tag">属性：</span>
+                  <span class="selecter 属性">
+                    <input dpath="character.属性" type="radio" name="属性" id="属性炎" value="炎" checked /><span><label for="属性炎"><span name="icon" style="background-image: url(img/炎.webp);"></span>炎</label></span>
+                    <input dpath="character.属性" type="radio" name="属性" id="属性氷" value="氷"/><span><label for="属性氷"><span name="icon" style="background-image: url(img/氷.webp);" /></span>氷</label></span>
+                    <input dpath="character.属性" type="radio" name="属性" id="属性風" value="風"/><span><label for="属性風"><span name="icon" style="background-image: url(img/風.webp);"></span>風</label></span>
+                    <input dpath="character.属性" type="radio" name="属性" id="属性雷" value="雷"/><span><label for="属性雷"><span name="icon" style="background-image: url(img/雷.webp);"></span>雷</label></span>
+                    <input dpath="character.属性" type="radio" name="属性" id="属性地" value="地"/><span><label for="属性地"><span name="icon" style="background-image: url(img/地.webp);"></span>地</label></span>
+                  </span>
+                </div>
+                <div>
+                <div>
+                  <span class="tag">攻撃距離</span>
+                  <span class="selecter 攻撃距離">
+                    <span><input dpath="character.攻撃距離" type="radio" name="攻撃距離" id="近距離" value="0" checked /><label for="近距離">近距離</label></span>
+                    <span><input dpath="character.攻撃距離" type="radio" name="攻撃距離" id="遠距離" value="1"/><label for="遠距離">遠距離</label></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="score">
+            <span>スコア</span>
+            <span id="rスコア"></span>
+          </div>
+          <textarea dpath="character.comment" class="comment" placeholder="コメント欄：このキャラクターの説明など"></textarea>
+          <details class="数値詳細">
+            <summary>詳細</summary>
+            <div id="result_subitems">
+            </div>
+          </details>
+        </div>
+      </details>
+<!--- ステータス -->
+      <details class="opner" open>
+        <summary><h1 class="headline">ステータス</h1></summary>
+        <div id="status_view">
+          <details>
+            <summary>説明<span style="color: red;">　　現パーティー外、料理なしの状態で記録してください</span></summary>
+            <table><tr>
+              <td><img src="status_sample.webp" alt="サンプル画像" height="150"/></td>
+              <td>
+              ステータス画面の数値をそのまま入力してください。<br/>
+              2026/11月：明らかなバグがあり、チームに入ってるとサポートダメージ増加などはメンバーの数値が勝手に合算されます。そのためパーティーに入れてない状態で数値を確認してください。<br/>
+              この数値にはキャラクターのステータス、料理の効果、装備のステータス、モンぷらんのステータス、モンぷらんの特性、属性の聖域による属性ボーナスが含まれます。<br/>
+              スキル使用中はスキルの値も含まれます。何も使用してない状態の数値を入力してください。<br/>
+              </td>
+            </tr></table>
+          </details>
+          <div id="status_template_area">
+<!-- ステータスのパラメータテンプレート -->
+<div id="status_template">
+  <h2>攻撃</h2>
+  <div class="status_parameter_area">
+    <div id="status_parameter_template" class="input-status">
+      <div name="icon"></div>
+      <span name="name">一般モンスターダメージ増加</span>
+      <input  name="value" type="number" placeholder="入力" step="0.01"/>
+      <span name="suffix">％</span>
+    </div>
+  </div>
+</div>
+          </div>
+
+        </div>
+        <br/>
+          <div class="buttonarea">
+            <span>
+              <button id="status.copy.button" type="button">データコピー</button>
+              <button id="status.paste.button" type="button">貼り付け</button>
+            </span>
+          </div>
+        <textarea dpath="status.comment" class="comment" placeholder="コメント欄：特に上げているステータスなど"></textarea>
+      </details>
+
+<!-- パラメータのリスト -->
+      <datalist id="monring_list"></datalist>
+      <datalist id="armor_list"></datalist>
+      <datalist id="artifact_list"></datalist>
+<!-- パラメータテンプレート -->
+<div id="parameter_template" class="input-parameter">
+  <select dpath="" class="parameter-name" name="name"></select>
+  <input dpath=""  name="value" type="number" placeholder="入力" value="0" step="0.01"/>
+  <span name="suffix">％</span>
+  <span class="attribute_box">
+    <label><input dpath="" name="リンク" type="checkbox"/>リンク</label>
+    <label style="font-size: 0.7rem;"><input dpath="" name="バースト" type="checkbox"/>バースト</label>
+    <select dpath="" name="target">
+      <option value="個人">個人</option>
+      <option value="常時">常時</option>
+      <option value="デバフ">デバフ</option>
+      <option value="PT">PT</option>
+      <option value="炎">炎</option>
+      <option value="氷">氷</option>
+      <option value="風">風</option>
+      <option value="雷">雷</option>
+      <option value="地">地</option>
+      <option value="近距離">近距離</option>
+      <option value="遠距離">遠距離</option>
+      <option value="異属近">異属近</option>
+      <option value="異属遠">異属遠</option>
+    </select>
+    <select dpath="" name="限定">
+      <option value="なし">なし</option>
+      <option value="弱点">弱点</option>
+      <option value="通常">通常</option>
+      <option value="SP">SP</option>
+      <option value="ULT">ULT</option>
+      <option value="スイッチ">スイッチ</option>
+      <option value="サポート">サポート</option>
+      <option value="ボス">ボス</option>
+      <option value="一般">一般</option>
+      <option value="一回">一回</option>
+    </select>
+    <button id="" type="button">削除</button>
+  </span>
+</div>
+<!-- モンぷらん -->
+      <details class="opner" open>
+        <summary><h1 class="headline">モンぷらん</h1></summary>
+        <div>
+          <details>
+            <summary>説明</summary>
+            <p>
+              モンぷらんが付与するバフを入力してください。<br/>
+              リストにないデータは手動で入力。<br/>
+              常時発動している装備の効果の場合(結合段階効果など)対象で常時を選択してください。攻撃力の元ステータス補正に使います。<br/>
+              ぶっちゃけ攻撃力増加以外の常時効果は省略しても変わらない。<br/>
+            <ul>
+              <li>リンク：ONにするとメイン・伝説以外にある場合計算されなくなる</li>
+              <li>バースト：バースト状態時のみ計算</li>
+              <li>対象：バフが自分以外にかかるか
+                <ul>
+                  <li>個人： 自分のみ</li>
+                  <li>常時： 常時発動</li>
+                  <li>デバフ： 全員に計算</li>
+                  <li>PT： 全員に計算</li>
+                  <li>炎～地： その属性の全員で計算</li>
+                  <li>近距離： 近距離タイプキャラのみ</li>
+                  <li>遠距離： 遠距離タイプキャラのみ</li>
+                  <li>異属近： 異なる属性の近距離タイプ</li>
+                  <li>異属遠： 異なる属性の遠距離タイプ</li>
+                </ul>
+              </li>
+              <li>限定：特定の攻撃時のみ発動するか(バフがかかる条件ではない)
+                <ul>
+                  <li>なし： 条件無し</li>
+                  <li>弱点： 弱点属性攻撃時のみ</li>
+                  <li>通常： 通常攻撃時のみ</li>
+                  <li>SP： SPスキル攻撃時のみ</li>
+                  <li>ULT： ULT攻撃時のみ</li>
+                  <li>スイッチ：スイッチ攻撃時のみ</li>
+                  <li>サポート： サポート攻撃時のみ</li>
+                  <li>ボス： ボス攻撃時のみ</li>
+                  <li>一般： 一般モンスター攻撃時のみ</li>
+                  <li>一回： 一回の攻撃のみ有効</li>
+                </ul>
+              </li>
+            </ul>
+            </p>
+          </details>
+          <div id="monring_view">
+            <div id="メイン.monring">
+              <h2>メイン</h2>
+              <input dpath="monring.メイン.name" list="monring_list"/>
+              <div id="monring.メイン.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="monring.メイン.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+            <br/>
+            <div id="サブ1.monring">
+              <h2>サブ1</h2>
+              <input dpath="monring.サブ1.name" list="monring_list"/>
+              <div id="monring.サブ1.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="monring.サブ1.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+            <br/>
+            <div id="サブ2.monring">
+              <h2>サブ2</h2>
+              <input dpath="monring.サブ2.name" list="monring_list"/>
+              <div id="monring.サブ2.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="monring.サブ2.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+            <br/>
+            <div id="伝説.monring">
+              <h2>伝説</h2>
+              <input dpath="monring.伝説.name" list="monring_list"/>
+              <div id="monring.伝説.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="monring.伝説.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <br/>
+          <div class="buttonarea">
+            <span>
+              <button id="monring.copy.button" type="button">データコピー</button>
+              <button id="monring.paste.button" type="button">貼り付け</button>
+            </span>
+          </div>
+          <textarea dpath="monring.comment" class="comment" placeholder="コメント欄：特性の内容など"></textarea>
+        </div>
+      </details>
+
+<!-- 装備 -->
+      <details class="opner" open>
+        <summary><h1 class="headline">装備</h1></summary>
+        <div>
+          <details>
+            <summary>説明</summary>
+            <p>
+              装備が付与するバフを入力してください。<br/>
+            </p>
+          </details>
+          <div id="equip_view">
+            <div id="アーティファクト.equip">
+              <h2>アーティファクト</h2>
+              <input dpath="equip.アーティファクト.name" list="artifact_list"/>
+              <div id="equip.アーティファクト.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="equip.アーティファクト.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+            <br/>
+            <div id="防具_view">
+              <h2>防具</h2>
+              <input dpath="equip.防具.name" list="armor_list"/>
+              <div id="equip.防具.parameter">
+              </div>
+              <br/>
+              <div class="buttonarea">
+                <button id="equip.防具.parameter.add.button" type="button">パラメータ追加</button>
+                <span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <br/>
+          <div class="buttonarea">
+            <span>
+              <button id="equip.copy.button" type="button">データコピー</button>
+              <button id="equip.paste.button" type="button">貼り付け</button>
+            </span>
+          </div>
+          <textarea dpath="equip.comment" class="comment" placeholder="コメント欄：なにかコメントがあれば"></textarea>
+        </div>
+      </details>
+
+<!-- スキルバフテンプレート -->
+<div id="skill_buf_template">
+  <div class="buttonarea">
+    <input  list="" name="skillname" placeholder="スキルのバフ名を入力" value=""/>
+    <button id="skill.buf.0.delete.button" type="button" name="skilldelete_button">スキル削除</button>
+  </div>
+  <div id="" name="skilparameter_area">
+  </div>
+  <br/>
+  <div class="buttonarea">
+    <button id="" type="button" name="skillparameteradd_button">パラメータ追加</button>
+    <span></span>
+  </div>
+</div>
+<!-- スキルバフ -->
+      <details class="opner" open>
+        <summary><h1 class="headline">スキルバフ</h1></summary>
+        <div>
+          <details>
+            <summary>説明</summary>
+            <p>
+              キャラクターの特性・スキルが付与するバフを入力してください。<br/>
+              入力が面倒な場合はほかの人のデータをコピーして貼り付けると楽。<br/>
+              その場合スキルレベルの違いや凸数の違いに注意してください。<br/>
+            </p>
+          </details>
+          <div id="skill_view">
+            <div id="skill.buf">
+            </div>
+          </div>
+          <br/>
+          <div class="buttonarea">
+            <button id="skill.buf.add.button" type="button">スキル追加</button>
+            <span>
+              <button id="skill.copy.button" type="button">データコピー</button>
+              <button id="skill.paste.button" type="button">貼り付け</button>
+            </span>
+          </div>
+          <textarea dpath="skill.comment" class="comment" placeholder="コメント欄：説明などあれば"></textarea>
+        </div>
+      </details>
+<!-- フッター -->
+    <br/><br/><hr/>
+    <div class="buttonarea">
+      <button id="call.shortURL" type="button">短縮URL発行</button>
+      <span>
+        <button id="single.copy.button" type="button">全データコピー</button>
+        <button id="single.paste.button" type="button">全データ貼り付け</button>
+      </span>
+    </div>
+    <div id="footer">
+      <p>created by ほげん(x@hogen_feh) <a href="https://github.com/final-hogen/final-tools">ソースコード</a></p>
+      <p><a href="https://stardive.netmarble.com/">©モンギル STAR DIVE</a>　　<a href="https://www.netmarble.com/">©netmarble</a></p>
+    </div>
+    <script>
+      const templateID = {
+        "status_parameter":"status_parameter_template"
+      };
+      window.onload = function(event){
+        let  finalloader = new StatusPageExecuter();
+        window.finalloader = finalloader;
+        finalloader.setFinish(mainDataLoaded);
+        finalloader.loadSettings();
+
+      }
+      // 基礎データ読み込み完了
+      function mainDataLoaded(){
+        console.log("loaded.");
+
+        // UI初期化
+        let  finalloader = window.finalloader;
+        finalloader.setFinish(null);
+        finalloader.updateViewport();
+
+        finalloader.initPreset();
+        finalloader.initStatusData();
+        finalloader.initAddStyle();
+        finalloader.initParameterNameList();
+        // フォーム読み取り開始
+        const form = document.getElementById('myForm');
+        form.addEventListener('change', (event) => {myForm(event);});
+        form.addEventListener('click', (event) => {myButton(event);});
+        form.addEventListener('submit', (event) => {event.preventDefault();return false;});
+
+        //パラメータからデータ読み込み
+        finalloader.downloadFromURL();
+      }
+
+      function myForm(event){
+        const target = event.target;
+        if (target.matches('*[dpath]')){
+          const dpath = target.getAttribute("dpath");
+          const value = target.value;
+          window.finalloader.changeDpathUIData(dpath,value);
+          finalloader.postUpdateURL();
+        }
+      }
+      function myButton(event){
+        if (event.target.matches('button, input[type="button"]')){
+          window.finalloader.pushButton(event.target.id);
+          finalloader.postUpdateURL();
+        }
+      }
+    </script>
+    </div></div>
+  </form></body>
+</html>

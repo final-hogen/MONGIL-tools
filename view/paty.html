@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta name="viewport" content="width=700">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>モンギル パーティーステータス</title>
+    <link rel="shortcut icon" type="image/png" href="サイトアイコン.PNG">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="status.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
+    <script src="../dpath_json.js"></script>
+    <script src="../compress.js"></script>
+    <script src="../dataloader.js"></script>
+    <script src="ui.js"></script>
+    <script src="status.ui.js"></script>
+    <script src="math.js"></script>
+    <script src="paty.js"></script>
+  </head>
+  <body class="meiryo patyview"><form id="myForm">
+    <div id="wrapper" >
+    <div id="conteiner">
+<style id="add_style"></style>
+<dialog id="message_dialog">
+  メッセージはありません
+</dialog>
+      <div class="logoarea">
+        <div >
+          <img style="margin-right: 10px;" src="logo.png"/>
+            <span style="display: inline-block;">パーティー<br/>評価</span>
+        </div>
+      </div>
+      <p>
+        パーティーの詳細データを記録し、大雑把な評価スコアを算出するページです。メンバー間のバフも考慮されます。<br/>
+        ここの数値(装備編成)×キャラの強さ×操作のうまさ　が最終的な強さだと思ってください。<br/>
+        計算は憶測で、何の保証もありません。このサイトにあるデータ、画像などの著作権はnetmerble(モンギル)にあります。
+      </p>
+      <textarea class="active comment" dpath="paty.comment" class="comment" placeholder="コメント欄：パーティーの説明とか"></textarea>
+      <details class="active">
+        <summary>説明</summary>
+        <p>
+          キャラクターの詳細ページで最下部の全データコピーをして貼り付けるとキャラクターを変更できます。<br/>
+          メンバーのバフも含めた評価を見ることができます。他の人のキャラをコピーするともってないキャラが入った時の変化を見ることもできます。<br/>
+          このサイトを使って入力したデータをほかの人と共有できます。<br/>
+          入力したデータは主にURLで保存・共有できます。いくつか方法があります。<br/>
+        <ol>
+          <li>記入後、URLをコピペ・ブックマークする。(もっとも簡単で確実だがURLがクソ長く、xとかには貼れない。)</li>
+          <li>記入後、短縮URLを発行(<a href="javascript:window.scrollTo (0,document.documentElement.scrollHeight);">最下部</a>)し、コピペする。(ドメインはx.gdになります)</li>
+          <li>記入後、全データをコピーしてデータをテキストファイルなどで保存する。(管理が面倒)</li>
+        </ol>
+          データを変更するとURLも変更されます。他の人のデータを変更してもURLが変わるだけで、上書きしてしまう心配はありません。<br/>
+          <br/>
+          バーストモードをONにするとモンぷらんのバースト時効果が有効になり、攻撃速度が+50%され追い打ちダメージがスコアに加算されます。<br/>
+        </p>
+      </details>
+      <br/>
+      <label><input type="checkbox" id="burst_mode" name="burst_mode"/>バーストモード</label>
+<!-- 評価 -->
+      <details class="opner" open>
+        <summary><h1 class="headline">評価内容</h1></summary>
+        <div id="character_view">
+
+
+          <div id="result1_area"><!--キャラ1  -->
+            <div class="graphics">
+              <div class="faceimage"><div id="p1.faceimage"></div></div>
+              <div><canvas id="p1.Radar" class="radar"></canvas></div>
+
+              <div class="character_data">
+                <div class="buttonarea">
+                  <button id="p1.view.button" type="button">詳細を見る</button>
+                  <span><button id="p1.paste.button" type="button">キャラ貼り付け</button></span>
+                </div>
+                <div>
+                  <span class="tag">名前：</span>
+                    <input dpath="p1.character.name" width="200px" list="character_list" name="character" id="character_name">
+                    <datalist id="character_list"></datalist>
+                </div>
+                <div>
+                  <span class="tag">才能開花：</span>
+                  <span class="paty_status">
+                    <span class="才能開花"></span></dialog><input dpath="p1.character.才能開花" name="才能開花"/>
+                  </span>
+                </div>
+                <div>
+                 <span class="tag">属性：</span>
+                  <span class="paty_status">
+                    <span class="属性"></span><input dpath="p1.character.属性" name="属性"/>
+                  </span>
+                </div>
+                <div>
+                <div>
+                  <span class="tag">攻撃距離</span>
+                  <span class="paty_status">
+                    <span class="攻撃距離"></span><input dpath="p1.character.攻撃距離" name="攻撃距離" class="nodisp"/>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div><!-- p1スコア -->
+            <div class="score">
+              <span>スコア</span>
+              <span id="p1.rスコア"></span>
+            </div>
+            <textarea dpath="p1.character.comment" class="comment" placeholder="コメント欄：このキャラクターの説明など"></textarea>
+            <details class="数値詳細">
+              <summary>詳細</summary>
+              <div id="p1.result_subitems">
+              </div>
+            </details>
+          </div>
+
+<hr/>
+
+          <div id="result2_area"><!--キャラ2  -->
+            <div class="graphics">
+              <div class="faceimage"><div id="p2.faceimage"></div></div>
+              <div><canvas id="p2.Radar" class="radar"></canvas></div>
+
+              <div class="character_data">
+                <div class="buttonarea">
+                  <button id="p2.view.button" type="button">詳細を見る</button>
+                  <span><button id="p2.paste.button" type="button">キャラ貼り付け</button></span>
+                </div>
+                <div>
+                  <span class="tag">名前：</span>
+                    <input dpath="p2.character.name" width="200px" list="character_list" name="character" id="character_name">
+                    <datalist id="character_list"></datalist>
+                </div>
+                <div>
+                  <span class="tag">才能開花：</span>
+                  <span class="paty_status">
+                    <span class="才能開花"></span></dialog><input dpath="p2.character.才能開花" name="才能開花"/>
+                  </span>
+                </div>
+                <div>
+                 <span class="tag">属性：</span>
+                  <span class="paty_status">
+                    <span class="属性"></span><input dpath="p2.character.属性" name="属性"/>
+                  </span>
+                </div>
+                <div>
+                <div>
+                  <span class="tag">攻撃距離</span>
+                  <span class="paty_status">
+                    <span class="攻撃距離"></span><input dpath="p2.character.攻撃距離" name="攻撃距離" class="nodisp"/>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div><!-- p2スコア -->
+            <div class="score">
+              <span>スコア</span>
+              <span id="p2.rスコア"></span>
+            </div>
+            <textarea dpath="p2.character.comment" class="comment" placeholder="コメント欄：このキャラクターの説明など"></textarea>
+            <details class="数値詳細">
+              <summary>詳細</summary>
+              <div id="p2.result_subitems">
+              </div>
+            </details>
+          </div>
+
+<hr/>
+
+          <div id="result3_area"><!--キャラ3  -->
+            <div class="graphics">
+              <div class="faceimage"><div id="p3.faceimage"></div></div>
+              <div><canvas id="p3.Radar" class="radar"></canvas></div>
+
+              <div class="character_data">
+                <div class="buttonarea">
+                  <button id="p3.view.button" type="button">詳細を見る</button>
+                  <span><button id="p3.paste.button" type="button">キャラ貼り付け</button></span>
+                </div>
+                <div>
+                  <span class="tag">名前：</span>
+                    <input dpath="p3.character.name" width="200px" list="character_list" name="character" id="character_name">
+                    <datalist id="character_list"></datalist>
+                </div>
+                <div>
+                  <span class="tag">才能開花：</span>
+                  <span class="paty_status">
+                    <span class="才能開花"></span></dialog><input dpath="p3.character.才能開花" name="才能開花"/>
+                  </span>
+                </div>
+                <div>
+                 <span class="tag">属性：</span>
+                  <span class="paty_status">
+                    <span class="属性"></span><input dpath="p3.character.属性" name="属性"/>
+                  </span>
+                </div>
+                <div>
+                <div>
+                  <span class="tag">攻撃距離</span>
+                  <span class="paty_status">
+                    <span class="攻撃距離"></span><input dpath="p3.character.攻撃距離" name="攻撃距離" class="nodisp"/>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div><!-- p3スコア -->
+            <div class="score">
+              <span>スコア</span>
+              <span id="p3.rスコア"></span>
+            </div>
+            <textarea dpath="p3.character.comment" class="comment" placeholder="コメント欄：このキャラクターの説明など"></textarea>
+            <details class="数値詳細">
+              <summary>詳細</summary>
+              <div id="p3.result_subitems">
+              </div>
+            </details>
+          </div>
+        </div>
+      </details>
+<!-- かぶり -->
+    <br/><br/><hr/>
+    <details class="数値詳細">
+      <summary>かぶってるバフデバフ</summary>
+      <div id="duplicate_parameter">
+        <div>もんぷらん</div><div>もんぷらん</div><div>もんぷらん</div>
+      </div>
+    </details>
+    <hr/>
+<!-- フッター -->
+    <br/><br/>
+    <div class="buttonarea">
+      <button id="call.shortURL" type="button">短縮URL発行</button>
+      <span>
+        <button id="paty.copy.button" type="button">全データコピー</button>
+        <button id="paty.paste.button" type="button">全データ貼り付け</button>
+      </span>
+    </div>
+    <div id="footer">
+      <p>created by ほげん(x@hogen_feh) <a href="https://github.com/final-hogen/final-tools">ソースコード</a></p>
+      <p><a href="https://stardive.netmarble.com/">©モンギル STAR DIVE</a>　　<a href="https://www.netmarble.com/">©netmarble</a></p>
+    </div>
+    <script>
+      const templateID = {
+        "status_parameter":"status_parameter_template"
+      };
+      window.onload = function(event){
+        let  finalloader = new PatyPageExecuter();
+        window.finalloader = finalloader;
+        finalloader.setFinish(mainDataLoaded);
+        finalloader.loadSettings();
+
+      }
+      // 基礎データ読み込み完了
+      function mainDataLoaded(){
+        console.log("loaded.");
+
+        // UI初期化
+        let  finalloader = window.finalloader;
+        finalloader.setFinish(null);
+        finalloader.updateViewport();
+
+        // フォーム読み取り開始
+        const form = document.getElementById('myForm');
+        form.addEventListener('change', (event) => {myForm(event);});
+        form.addEventListener('click', (event) => {myButton(event);});
+        form.addEventListener('submit', (event) => {event.preventDefault();return false;});
+
+        //パラメータからデータ読み込み
+        finalloader.downloadFromURL();
+      }
+
+      function myForm(event){
+        const target = event.target;
+        if (target.matches('*[dpath]')){
+          const dpath = target.getAttribute("dpath");
+          const value = target.value;
+          window.finalloader.changeDpathUIData(dpath,value);
+          finalloader.postUpdateURL();
+        }else if(target.id=="burst_mode"){
+          finalloader.postShowGraph();
+        }
+      }
+      function myButton(event){
+        if (event.target.matches('button, input[type="button"]')){
+          window.finalloader.pushButton(event.target.id);
+          finalloader.postUpdateURL();
+        }
+      }
+    </script>
+    </div></div>
+  </form></body>
+</html>
