@@ -132,6 +132,10 @@ class PageExecuter extends DataLoader {
    */
   async loadShortURL(){
     this.sleep(100);
+    navigator.clipboard.writeText(window.location.href);
+    window.open("https://x.gd/","XGD");
+    return;
+    // API版はURLが長すぎるとダメらしい
     const myURL = window.location.href;
     const param = {"url":myURL,"key":XGD_API_KEY};
     const XGD_URL = 'https://xgd.io/V1/shorten';
@@ -154,7 +158,8 @@ class PageExecuter extends DataLoader {
    * @param {object} params null
    */
   onShortURL(text, params){
-    const response = JSON.parse(text);;
+    const response = JSON.parse(text);
+    console.log(response);
     switch(response.status){
       case 200:
         navigator.clipboard.writeText(response.shorturl);
